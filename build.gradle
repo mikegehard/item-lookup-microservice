@@ -1,0 +1,67 @@
+buildscript {
+    ext {
+        springBootVersion = '1.3.0.BUILD-SNAPSHOT'
+    }
+    repositories {
+        mavenCentral()
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath('se.transmode.gradle:gradle-docker:1.2')
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot.spring-boot'
+apply plugin: 'docker'
+
+jar {
+    baseName = 'item-lookup'
+    version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
+}
+
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+}
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+group = 'msgehard'
+task buildDocker(type: Docker, dependsOn: build) {
+    push = true
+    applicationName = jar.baseName
+    tagVersion = jar.version
+    baseImage("java:8")
+    addFile("${jar.baseName}-${jar.version}.jar", "app.jar")
+    entryPoint(["java","-jar","/app.jar"])
+    // Expose a port so Lattice knows what port to bind to.
+    exposePort(8080)
+
+    // before you get started grab the output of the jar
+    // task and put it into a place that the Docker plugin
+    // can add it to the container.
+    // See https://github.com/Transmode/gradle-docker/blob/master/src/main/groovy/se/transmode/gradle/plugins/docker/DockerTask.groovy#L88
+    // for details
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
