@@ -1,6 +1,5 @@
-package com.github.mikegehard.itemLookup;
+package com.github.mikegehard.itemLookup.web;
 
-import com.github.mikegehard.itemLookup.web.ItemLookupApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
